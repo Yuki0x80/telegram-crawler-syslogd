@@ -1,0 +1,27 @@
+[Unit]
+Description=Telegram Crawler with Syslog Integration
+Documentation=https://github.com/Yuki0x80/telegram-crawler-syslogd
+After=network.target
+
+[Service]
+Type=oneshot
+User=telegram-crawler
+Group=telegram-crawler
+WorkingDirectory=/opt/telegram-crawler
+# 基本環境変数を設定（WorkingDirectoryと一致させる）
+Environment="TELEGRAM_CRAWLER_DIR=/opt/telegram-crawler"
+# .envファイルから環境変数を読み込む（存在しない場合はエラーにしない）
+# .envファイルの値は上記のEnvironmentより優先される
+EnvironmentFile=-/opt/telegram-crawler/.env
+# ラッパースクリプトを実行（telegram-crawler実行後、自動的にsyslog送信）
+# ラッパースクリプトは.envファイルから以下の設定を読み込みます：
+# - TELEGRAM_CRAWLER_OUTPUT_DIR: telegram-crawlerの出力ディレクトリ
+# - JSONL_SEND_DIR: jsonl_to_syslog.pyで送信するディレクトリ
+# - JSONL_SEND_STATE_FILE: 状態ファイルのパス
+# - SYSLOG_*: syslog送信設定（jsonl_to_syslog.pyが使用）
+ExecStart=/opt/telegram-crawler/deploy/telegram-crawler-wrapper.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
