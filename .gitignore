@@ -208,3 +208,6 @@ __marimo__/
 
 # jsonl_to_syslog.py (GitHubから取得するため除外)
 jsonl_to_syslog.py
+
+# コードレビュー結果（ローカルのみ保持）
+CODE_REVIEW.md
