@@ -47,7 +47,7 @@ ruleset(name="telegram_crawler_ruleset") {
         )
         
         # または、すべてのメッセージを1つのファイルに保存
-        # srv/logssrvsrv/logs
+        # action(
         #     type="omfile"
         #     file="/srv/logs/telegram-crawler/telegram-crawler.jsonl"
         #     template="jsonlFormat"
