@@ -28,16 +28,32 @@ JSONL_OVER_SYSLOG_URL="https://raw.githubusercontent.com/Yuki0x80/jsonl-over-sys
 TMP_FILE=$(mktemp)
 
 if command -v curl >/dev/null 2>&1; then
-    curl -sSL "$JSONL_OVER_SYSLOG_URL" -o "$TMP_FILE"
+    HTTP_CODE=$(curl -sSL -o "$TMP_FILE" -w "%{http_code}" "$JSONL_OVER_SYSLOG_URL")
+    if [ "$HTTP_CODE" != "200" ]; then
+        echo "✗ jsonl_to_syslog.pyのダウンロードに失敗しました（HTTP $HTTP_CODE）"
+        rm -f "$TMP_FILE"
+        exit 1
+    fi
 elif command -v wget >/dev/null 2>&1; then
-    wget -qO "$TMP_FILE" "$JSONL_OVER_SYSLOG_URL"
+    if ! wget -qO "$TMP_FILE" "$JSONL_OVER_SYSLOG_URL" 2>/dev/null; then
+        echo "✗ jsonl_to_syslog.pyのダウンロードに失敗しました"
+        rm -f "$TMP_FILE"
+        exit 1
+    fi
 else
     echo "✗ curlまたはwgetが必要です"
     exit 1
 fi
 
 if [ ! -s "$TMP_FILE" ]; then
-    echo "✗ jsonl_to_syslog.pyのダウンロードに失敗しました"
+    echo "✗ jsonl_to_syslog.pyのダウンロードに失敗しました（空のファイル）"
+    rm -f "$TMP_FILE"
+    exit 1
+fi
+
+# Python構文の簡易検証（shebang、docstring、importのいずれかが含まれること）
+if ! head -5 "$TMP_FILE" | grep -qE '^#!/usr/bin/env python|^"""|^import '; then
+    echo "✗ ダウンロードされたファイルが有効なPythonスクリプトでない可能性があります"
     rm -f "$TMP_FILE"
     exit 1
 fi
@@ -90,7 +106,7 @@ DEFAULT_OUTPUT_DIR="$INSTALL_DIR/output"
 # .envファイルが存在する場合、TELEGRAM_CRAWLER_OUTPUT_DIRを読み込む
 if [ -f "$INSTALL_DIR/.env" ]; then
     # .envファイルからTELEGRAM_CRAWLER_OUTPUT_DIRを読み込む
-    ENV_OUTPUT_DIR=$(grep -E "^TELEGRAM_CRAWLER_OUTPUT_DIR=" "$INSTALL_DIR/.env" | cut -d'=' -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
+    ENV_OUTPUT_DIR=$(grep -E "^TELEGRAM_CRAWLER_OUTPUT_DIR=" "$INSTALL_DIR/.env" | head -1 | sed 's/^[^=]*=//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     if [ -n "$ENV_OUTPUT_DIR" ]; then
         DEFAULT_OUTPUT_DIR="$ENV_OUTPUT_DIR"
     fi

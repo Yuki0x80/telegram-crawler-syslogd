@@ -78,9 +78,16 @@ if [ -f "$JSONL_TO_SYSLOG" ]; then
     # ディレクトリの存在確認と作成
     if [ ! -d "$JSONL_SEND_DIR" ]; then
         echo "   送信対象ディレクトリが存在しないため作成します: $JSONL_SEND_DIR"
-        mkdir -p "$JSONL_SEND_DIR"
-        # systemdサービス経由で実行される場合、ディレクトリは自動的に実行ユーザー（telegram-crawler）が所有する
-        # 手動実行の場合も、作成したユーザーが所有する
+        if ! mkdir -p "$JSONL_SEND_DIR" 2>/dev/null; then
+            echo "✗ 送信対象ディレクトリの作成に失敗しました: $JSONL_SEND_DIR"
+            echo "   実行ユーザーに書き込み権限があるか確認してください"
+            exit 1
+        fi
+    fi
+
+    if [ ! -w "$JSONL_SEND_DIR" ]; then
+        echo "✗ 送信対象ディレクトリに書き込み権限がありません: $JSONL_SEND_DIR"
+        exit 1
     fi
     
     # 前回実行以降に作成されたファイルを自動的に処理
@@ -92,11 +99,11 @@ if [ -f "$JSONL_TO_SYSLOG" ]; then
     # jsonl_to_syslog.pyは自動的に.envファイルを読み込むため、
     # ここでは--dirと--state-fileのみを明示的に指定
     python3 "$JSONL_TO_SYSLOG" --dir "$JSONL_SEND_DIR" --state-file "$JSONL_SEND_STATE_FILE"
-    
-    if [ $? -eq 0 ]; then
+    SEND_EXIT_CODE=$?
+    if [ $SEND_EXIT_CODE -eq 0 ]; then
         echo "✓ 送信完了"
     else
-        echo "✗ 送信に失敗しました"
+        echo "✗ 送信に失敗しました（終了コード: $SEND_EXIT_CODE）"
         exit 1
     fi
 else
