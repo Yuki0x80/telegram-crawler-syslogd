@@ -1,18 +1,68 @@
 # Push changes
+Explain: 変更をまとめて Conventional Commits で commit → 安全に push する
 
-Explain: ステージング・コミット・push を自動実行する
+---
+## 実行フロー
+1. `git status --porcelain` を確認
+   * 変更が無ければ終了
+2. 変更内容を解析し **1行の Conventional Commits メッセージ** を生成
+   形式:
+   ```
+   type(scope): summary
+   ```
+   Breaking Change の場合:
+   ```
+   type(scope)!: summary
+   ```
+3. 生成した内容を表示
+   * 対象ファイル一覧
+   * 要約メッセージ
+   * ユーザー確認（--auto の場合スキップ）
 
-Steps:
+4. 変更をステージ
+   ```
+   git add -A
+   ```
+5. コミット
+   ```
+   git commit -m "<generated message>"
+   ```
+6. ブランチ判定
+   * 現在が `main` または `master` の場合:
+     ```
+     git checkout -b feature/<summary>-<timestamp>
+     ```
+7. push
+   ```
+   git push --set-upstream origin HEAD
+   ```
+---
+## メッセージ生成ルール
+### Type Rules
+* docs: コメント/ドキュメントのみ
+* test: テストのみ
+* chore: 設定/CI/依存関係
+* refactor: 挙動不変
+* fix: 不具合修正
+* feat: 新機能
+* 迷ったら fix を優先
 
-1. git status を確認
-2. 変更内容を要約
-3. Conventional Commits のメッセージを生成
-4. git add -A
-5. git commit -m "<generated message>"
-6. git push
+### Scope Rules
+* ルートディレクトリ名を scope
+* 複数ディレクトリの場合 core
+* test / docs は除外
 
-Rules:
+### Breaking Change
+公開API互換性破壊がある場合 `!` を付与
 
-* 変更がない場合は何もしない
-* push 前に要約を表示する
-* main へ直接 push しない（ブランチがある場合）
+### Summary Rules
+* 日本語
+* 命令形
+* 句点なし
+* ファイル名を書かない
+* 100文字以内（推奨72文字）
+
+## 制約
+* 出力は1行のみ
+* 絵文字禁止
+* main/master へ直接 push しない
