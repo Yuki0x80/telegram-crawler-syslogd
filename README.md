@@ -14,6 +14,8 @@
 - `telegram-crawler`がインストール済み（`/opt/telegram-crawler`に配置）
 - syslogサーバ（rsyslogなど）が設定済み
 
+**注意**: `INSTALL_DIR=/custom/path sudo ./install.sh` でインストール先を変更した場合、そのパスに`telegram-crawler`を配置してください。
+
 ## インストール手順
 
 ### 1. リポジトリをクローン
@@ -40,10 +42,13 @@ sudo ./install.sh
 ### 3. .envファイルを作成（必須）
 
 ```bash
+sudo cp /opt/telegram-crawler/example.env /opt/telegram-crawler/.env
 sudo nano /opt/telegram-crawler/.env
 ```
 
-最低限の設定（`example.env`を参考）：
+インストールスクリプトは`example.env`をインストールディレクトリにコピーします。上記で`.env`にコピーして編集してください。
+
+最低限の設定（編集が必要な項目）：
 
 ```bash
 # ディレクトリ設定（telegram-crawlerのconfig.iniと一致させる）
@@ -102,7 +107,7 @@ sudo journalctl -u telegram-crawler.service -f
 ## 実行順序
 
 1. **インストール**: `sudo ./install.sh`
-2. **設定**: `/opt/telegram-crawler/.env`を作成（最低限の設定を記述）
+2. **設定**: `example.env`を`.env`にコピーして編集（`sudo cp /opt/telegram-crawler/example.env /opt/telegram-crawler/.env` → `sudo nano /opt/telegram-crawler/.env`）
 3. **有効化**: `sudo systemctl enable --now telegram-crawler.timer`
 4. **確認**: `sudo systemctl status telegram-crawler.timer`
 
@@ -110,7 +115,7 @@ sudo journalctl -u telegram-crawler.service -f
 
 1. **telegram-crawlerのインストール**: `/opt/telegram-crawler`に`telegram-crawler`をインストール済みであること
 2. **telegram-crawlerの設定**: `config.ini`で出力ディレクトリを設定（`.env`の`TELEGRAM_CRAWLER_OUTPUT_DIR`と一致させる）
-3. **.envファイルの作成**: `/opt/telegram-crawler/.env`に最低限の設定を記述
+3. **.envファイルの作成**: `example.env`を`.env`にコピーして編集（`SYSLOG_HOST`等を設定）
 4. **syslogサーバの設定**: syslogサーバ側の設定（`syslog-config/README.md`を参照）
 
 ## syslogサーバ側の設定

@@ -13,6 +13,7 @@ set -e
 # systemdサービス経由で実行される場合、WorkingDirectoryが設定されている
 # PWD（現在の作業ディレクトリ）を使用するか、環境変数から取得
 TELEGRAM_CRAWLER_DIR="${TELEGRAM_CRAWLER_DIR:-${PWD:-/opt/telegram-crawler}}"
+: "${TELEGRAM_CRAWLER_DIR:?TELEGRAM_CRAWLER_DIR が設定されていません}"
 TELEGRAM_CRAWLER_SCRIPT="${TELEGRAM_CRAWLER_SCRIPT:-telegram_crawler.py}"
 JSONL_TO_SYSLOG="${JSONL_TO_SYSLOG:-$TELEGRAM_CRAWLER_DIR/jsonl_to_syslog.py}"
 
@@ -45,6 +46,13 @@ fi
 TELEGRAM_CRAWLER_OUTPUT_DIR="${TELEGRAM_CRAWLER_OUTPUT_DIR:-$TELEGRAM_CRAWLER_DIR/output}"
 JSONL_SEND_DIR="${JSONL_SEND_DIR:-$TELEGRAM_CRAWLER_OUTPUT_DIR}"
 JSONL_SEND_STATE_FILE="${JSONL_SEND_STATE_FILE:-/var/lib/jsonl-over-syslog/.last_run}"
+
+# .env が存在せず、syslog 設定も環境変数に無い場合はエラー
+if [ ! -f "$ENV_FILE" ] && [ -z "${SYSLOG_HOST:-}" ]; then
+    echo "✗ .env が存在しません。SYSLOG_HOST 等の syslog 設定が必要です"
+    echo "  設定例: example.env を参照し、$TELEGRAM_CRAWLER_DIR/.env を作成してください"
+    exit 1
+fi
 
 echo "=== telegram-crawler実行 ==="
 echo ""

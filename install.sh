@@ -121,18 +121,27 @@ else
     sudo chown "$SERVICE_USER:$SERVICE_USER" "$DEFAULT_OUTPUT_DIR" 2>/dev/null || true
 fi
 
-# 7. .envファイルの確認
+# 7. example.envをインストールディレクトリにコピー
+if [ -f "$SCRIPT_DIR/example.env" ]; then
+    sudo cp "$SCRIPT_DIR/example.env" "$INSTALL_DIR/example.env"
+    sudo chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/example.env"
+    echo "7. example.envをコピーしました"
+fi
+
+# 8. .envファイルの確認
 if [ ! -f "$INSTALL_DIR/.env" ]; then
-    echo "7. .envファイルを作成してください: sudo nano $INSTALL_DIR/.env"
-    echo "   設定例は example.env を参照してください"
+    echo "8. .envファイルを作成してください:"
+    echo "   sudo cp $INSTALL_DIR/example.env $INSTALL_DIR/.env"
+    echo "   sudo nano $INSTALL_DIR/.env"
 else
-    echo "7. .envファイルは既に存在します"
+    echo "8. .envファイルは既に存在します"
 fi
 
 echo ""
 echo "✓ インストール完了！"
 echo ""
 echo "次のステップ:"
-echo "1. .envファイルを設定: sudo nano $INSTALL_DIR/.env"
-echo "2. telegram-crawlerサービスを有効化: sudo systemctl enable --now telegram-crawler.timer"
-echo "3. 状態を確認: sudo systemctl status telegram-crawler.timer"
+echo "1. .envファイルを作成: sudo cp $INSTALL_DIR/example.env $INSTALL_DIR/.env"
+echo "2. .envを編集: sudo nano $INSTALL_DIR/.env"
+echo "3. telegram-crawlerサービスを有効化: sudo systemctl enable --now telegram-crawler.timer"
+echo "4. 状態を確認: sudo systemctl status telegram-crawler.timer"
